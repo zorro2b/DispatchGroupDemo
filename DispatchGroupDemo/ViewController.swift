@@ -23,20 +23,25 @@ class ViewController: UIViewController {
     @IBAction func runDemo(_ sender: Any) {
         runButton.isUserInteractionEnabled = false
         
-        let queue = DispatchQueue(label: "au.com.magicmobile.dispatch", attributes: .concurrent, target: .main)
+        let queue = DispatchQueue(label: "au.com.magicmobile.dispatch", attributes: .concurrent)
         let group = DispatchGroup()
         
-        overallLabel.text = "Starting workers...\n"
+        overallLabel.text = "Starting workers..."
 
         let labels = [self.worker1Label, self.worker2Label, self.worker3Label]
         
         for label in labels {
             print("*** start worker")
+            group.enter() // register worker in group
             queue.async {
                 self.worker(label!)
+                group.leave() // tell group we are done
             }
         }
-        
+
+        overallLabel.text = "Started"
+
+        // get notified when all workers are done
         group.notify(queue: DispatchQueue.main) { [unowned self] in
             self.message("All workers done\n", self.overallLabel)
             self.runButton.isUserInteractionEnabled = true
